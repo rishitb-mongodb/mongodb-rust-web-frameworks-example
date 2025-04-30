@@ -3,7 +3,7 @@ use mongodb::Database;
 use bson::oid::ObjectId;
 use serde_json::Value;
 use std::sync::Arc;
-use tokio::runtime::Runtime;
+use tokio::runtime::Handle;
 
 use crate::{
     db::mongodb::MongoRepo,
@@ -14,12 +14,12 @@ use crate::{
 #[derive(Clone)]
 struct State {
     repo: Arc<MongoRepo>,
-    runtime: Arc<Runtime>,
+    runtime: Handle,
 }
 
 pub async fn start(db: Database) -> Result<(), Box<dyn std::error::Error>> {
-    // Create a Tokio runtime for MongoDB operations
-    let runtime = Arc::new(Runtime::new()?);
+    // Get a handle to the Tokio runtime for MongoDB operations
+    let runtime = Handle::current();
     
     let state = State {
         repo: Arc::new(MongoRepo::new(&db)),
@@ -49,9 +49,10 @@ async fn create_restaurant(mut req: Request<State>) -> tide::Result {
     let repo = req.state().repo.clone();
     let runtime = req.state().runtime.clone();
     
-    let result = runtime.block_on(async move {
-        repo.create_restaurant(restaurant).await
-    });
+    let result = runtime
+        .spawn(async move { repo.create_restaurant(restaurant).await })
+        .await
+        .unwrap_or_else(|e| Err(AppError::from(e)));
     
     match result {
         Ok(created) => Ok(Response::builder(StatusCode::Created)
@@ -67,9 +68,10 @@ async fn list_restaurants(req: Request<State>) -> tide::Result {
     let repo = req.state().repo.clone();
     let runtime = req.state().runtime.clone();
     
-    let result = runtime.block_on(async move {
-        repo.get_restaurants(10).await
-    });
+    let result = runtime
+        .spawn(async move { repo.get_restaurants(10).await })
+        .await
+        .unwrap_or_else(|e| Err(AppError::from(e)));
     
     match result {
         Ok(restaurants) => Ok(Response::builder(StatusCode::Ok)
@@ -93,9 +95,10 @@ async fn get_restaurant(req: Request<State>) -> tide::Result {
     let repo = req.state().repo.clone();
     let runtime = req.state().runtime.clone();
     
-    let result = runtime.block_on(async move {
-        repo.get_restaurant_by_id(object_id).await
-    });
+    let result = runtime
+        .spawn(async move { repo.get_restaurant_by_id(object_id).await })
+        .await
+        .unwrap_or_else(|e| Err(AppError::from(e)));
 
     match result {
         Ok(restaurant) => Ok(Response::builder(StatusCode::Ok)
@@ -130,9 +133,10 @@ async fn update_restaurant(mut req: Request<State>) -> tide::Result {
     let repo = req.state().repo.clone();
     let runtime = req.state().runtime.clone();
     
-    let result = runtime.block_on(async move {
-        repo.update_restaurant(object_id, update_doc).await
-    });
+    let result = runtime
+        .spawn(async move { repo.update_restaurant(object_id, update_doc).await })
+        .await
+        .unwrap_or_else(|e| Err(AppError::from(e)));
 
     match result {
         Ok(updated) => Ok(Response::builder(StatusCode::Ok)
@@ -159,9 +163,10 @@ async fn delete_restaurant(req: Request<State>) -> tide::Result {
     let repo = req.state().repo.clone();
     let runtime = req.state().runtime.clone();
     
-    let result = runtime.block_on(async move {
-        repo.delete_restaurant(object_id).await
-    });
+    let result = runtime
+        .spawn(async move { repo.delete_restaurant(object_id).await })
+        .await
+        .unwrap_or_else(|e| Err(AppError::from(e)));
 
     match result {
         Ok(_) => Ok(Response::builder(StatusCode::NoContent).build()),
