@@ -11,6 +11,9 @@ pub enum AppError {
     #[error("Serialization error: {0}")]
     Serialization(#[from] serde_json::Error),
     
+    #[error("Handler error: {0}")]
+    HandlerError(#[from] tokio::task::JoinError),
+    
     #[error("Not found")]
     NotFound,
     
