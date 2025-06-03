@@ -8,8 +8,6 @@ use rocket::{
 };
 use mongodb::Database;
 use bson::oid::ObjectId;
-use serde_json::Value;
-
 use crate::{
     db::mongodb::MongoRepo,
     models::restaurant::Restaurant,

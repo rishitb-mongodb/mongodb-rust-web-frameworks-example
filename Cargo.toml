@@ -5,8 +5,8 @@ edition = "2021"
 
 [dependencies]
 # MongoDB
-mongodb = "2.8"
-bson = { version = "2.9", features = ["chrono-0_4"] }
+mongodb = "3.2.3"
+bson = { version = "2.15.0", features = ["chrono-0_4"] }
 futures = "0.3"
 
 # Common dependencies

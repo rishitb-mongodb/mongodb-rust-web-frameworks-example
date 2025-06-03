@@ -6,7 +6,7 @@ This project demonstrates how to implement a CRUD application for a restaurant d
 
 - Rust (latest stable version)
 - MongoDB running locally or accessible via network
-- MongoDB Atlas (sample dataset)[https://www.mongodb.com/docs/atlas/sample-data/] loaded in
+- MongoDB Atlas [sample dataset](https://www.mongodb.com/docs/atlas/sample-data/) loaded in
 
 ## Setup
 

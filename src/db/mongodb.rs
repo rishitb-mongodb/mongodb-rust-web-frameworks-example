@@ -14,15 +14,13 @@ impl MongoRepo {
     }
 
     pub async fn create_restaurant(&self, restaurant: Restaurant) -> Result<Restaurant, AppError> {
-        let result = self.collection.insert_one(restaurant, None).await?;
+        let result = self.collection.insert_one(restaurant).await?;
         let filter = doc! { "_id": result.inserted_id };
-        let created_restaurant = self.collection.find_one(filter, None).await?
+        let created_restaurant = self.collection.find_one(filter).await?
             .ok_or(AppError::NotFound)?;
         Ok(created_restaurant)
-    }
-
-    pub async fn get_restaurants(&self, limit: i64) -> Result<Vec<Restaurant>, AppError> {
-        let mut cursor = self.collection.find(None, None).await?;
+    }    pub async fn get_restaurants(&self, limit: i64) -> Result<Vec<Restaurant>, AppError> {
+        let mut cursor = self.collection.find(doc! {}).await?;
         let mut restaurants = Vec::new();
         while let Some(restaurant) = cursor.try_next().await? {
             restaurants.push(restaurant);
@@ -31,11 +29,9 @@ impl MongoRepo {
             }
         }
         Ok(restaurants)
-    }
-
-    pub async fn get_restaurant_by_id(&self, id: ObjectId) -> Result<Restaurant, AppError> {
+    }pub async fn get_restaurant_by_id(&self, id: ObjectId) -> Result<Restaurant, AppError> {
         let filter = doc! { "_id": id };
-        let restaurant = self.collection.find_one(filter, None).await?
+        let restaurant = self.collection.find_one(filter).await?
             .ok_or(AppError::NotFound)?;
         Ok(restaurant)
     }
@@ -44,7 +40,7 @@ impl MongoRepo {
         let filter = doc! { "_id": id };
         let update_doc = doc! { "$set": update };
         
-        let result = self.collection.update_one(filter.clone(), update_doc, None).await?;
+        let result = self.collection.update_one(filter.clone(), update_doc).await?;
         if result.modified_count == 0 {
             return Err(AppError::NotFound);
         }
@@ -54,7 +50,7 @@ impl MongoRepo {
 
     pub async fn delete_restaurant(&self, id: ObjectId) -> Result<(), AppError> {
         let filter = doc! { "_id": id };
-        let result = self.collection.delete_one(filter, None).await?;
+        let result = self.collection.delete_one(filter).await?;
         if result.deleted_count == 0 {
             return Err(AppError::NotFound);
         }
